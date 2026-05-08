@@ -29,3 +29,5 @@ export type {
   Stroke,
   RemoteCursor,
 } from "./types";
+
+export { SHAPE_KINDS } from "./types";

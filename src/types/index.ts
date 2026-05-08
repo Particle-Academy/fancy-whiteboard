@@ -20,7 +20,26 @@ export type StickyNoteItem = BoardItemBase & {
   authorId?: string;
 };
 
-export type ShapeKind = "rect" | "ellipse" | "text";
+export type ShapeKind =
+  | "rect"
+  | "rounded-rect"
+  | "ellipse"
+  | "diamond"
+  | "triangle"
+  | "line"
+  | "arrow"
+  | "text";
+
+export const SHAPE_KINDS: ShapeKind[] = [
+  "rect",
+  "rounded-rect",
+  "ellipse",
+  "diamond",
+  "triangle",
+  "line",
+  "arrow",
+  "text",
+];
 
 export type ShapeItem = BoardItemBase & {
   kind: "shape";
