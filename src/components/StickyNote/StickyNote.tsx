@@ -73,15 +73,9 @@ export function StickyNote({
       const up = () => {
         window.removeEventListener("pointermove", move);
         window.removeEventListener("pointerup", up);
-        // Suppress synthesized click after a drag so dblclick listeners don't fire.
-        if (moved) {
-          const swallow = (ev: Event) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            window.removeEventListener("click", swallow, true);
-          };
-          window.addEventListener("click", swallow, true);
-        }
+        // Click-without-drag → enter edit mode. Much more discoverable than
+        // double-click, while still preserving drag-to-move.
+        if (!moved && !readOnly && onChange) setEditing(true);
       };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
@@ -113,6 +107,7 @@ export function StickyNote({
     [item, onChange, readOnly, minWidth, minHeight],
   );
 
+  // Double-click also enters edit mode for users who expect that gesture.
   const onDoubleClick = useCallback(() => {
     if (readOnly) return;
     setEditing(true);

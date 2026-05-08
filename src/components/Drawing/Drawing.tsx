@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import type { Point, Stroke } from "../../types";
 
 export type DrawingProps = {
@@ -8,8 +8,10 @@ export type DrawingProps = {
   onStrokeEnd?: (stroke: Stroke) => void;
   color?: string;
   size?: number;
-  width: number;
-  height: number;
+  /** SVG canvas width. Optional — auto-measures the rendered element when omitted. */
+  width?: number;
+  /** SVG canvas height. Optional — auto-measures the rendered element when omitted. */
+  height?: number;
   enabled?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -17,7 +19,13 @@ export type DrawingProps = {
 
 /**
  * Drawing — freeform pen layer. Controlled: parent owns `strokes`.
- * Streams new strokes via the callbacks so apps can broadcast them as they form.
+ *
+ * Coordinates are in screen pixels relative to the rendered SVG. By default
+ * the component auto-measures itself with a ResizeObserver so width/height
+ * always match the visible area, keeping user coords 1:1 with click position.
+ *
+ * Streams new strokes via the callbacks so apps can broadcast them as they
+ * form (live multi-user pen view).
  */
 export function Drawing({
   strokes,
@@ -33,7 +41,27 @@ export function Drawing({
   style,
 }: DrawingProps) {
   const [active, setActive] = useState<Stroke | null>(null);
+  const [measured, setMeasured] = useState({ w: width ?? 0, h: height ?? 0 });
   const ref = useRef<SVGSVGElement>(null);
+
+  // Auto-measure rendered size so coords map 1:1 to clicks regardless of
+  // CSS sizing. Skipped when caller supplied explicit width AND height.
+  useEffect(() => {
+    if (width != null && height != null) return;
+    const el = ref.current;
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setMeasured({ w: Math.max(1, Math.round(r.width)), h: Math.max(1, Math.round(r.height)) });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width, height]);
+
+  const w = width ?? measured.w;
+  const h = height ?? measured.h;
 
   const localPoint = useCallback((e: React.PointerEvent | PointerEvent): Point => {
     const rect = ref.current?.getBoundingClientRect();
@@ -76,12 +104,14 @@ export function Drawing({
       ref={ref}
       className={className}
       style={{ pointerEvents: enabled ? "auto" : "none", ...style }}
-      width={width}
-      height={height}
+      width={w || undefined}
+      height={h || undefined}
       onPointerDown={onPointerDown}
     >
       {/* Transparent hit-target so empty SVG area catches pointer events. */}
-      {enabled && <rect x={0} y={0} width={width} height={height} fill="transparent" />}
+      {enabled && w > 0 && h > 0 && (
+        <rect x={0} y={0} width={w} height={h} fill="transparent" />
+      )}
       {all.map((s) => (
         <path
           key={s.id}
