@@ -2,3 +2,48 @@
 .fw-board { position: relative; overflow: hidden; touch-action: none; user-select: none; }
 .fw-board__viewport { position: absolute; inset: 0; transform-origin: 0 0; }
 .fw-item { position: absolute; }
+
+/* Sticky notes are intentionally always-light: pinning color-scheme keeps
+   OS dark mode from inverting text on the colored backgrounds. */
+.fw-sticky {
+  color-scheme: light;
+  color: #1f2937;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  cursor: grab;
+}
+.fw-sticky:active { cursor: grabbing; }
+.fw-sticky--selected { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.fw-sticky__text {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: text;
+  -webkit-text-fill-color: currentColor;
+}
+.fw-sticky__text::placeholder { color: rgba(31, 41, 55, 0.5); }
+
+/* Shapes */
+.fw-shape { cursor: grab; }
+.fw-shape:active { cursor: grabbing; }
+.fw-shape--text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  color: #1f2937;
+}
+.fw-shape--selected { filter: drop-shadow(0 0 0 2px #3b82f6); }
