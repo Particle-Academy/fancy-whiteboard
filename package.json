@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-whiteboard",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Collaborative whiteboard React components — sticky notes, diagramming, freeform drawing, presence cursors. Transport-agnostic (controlled state).",
   "repository": {
     "type": "git",

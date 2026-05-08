@@ -49,6 +49,9 @@ export type ShapeItem = BoardItemBase & {
   text?: string;
   fill?: string;
   stroke?: string;
+  /** For line / arrow: flip the diagonal so the shape reflects the drag direction. */
+  flipX?: boolean;
+  flipY?: boolean;
 };
 
 export type Stroke = {

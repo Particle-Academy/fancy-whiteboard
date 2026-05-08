@@ -104,6 +104,20 @@ export function Shape({
   );
 }
 
+/**
+ * Compute the from/to local-coord endpoints for line and arrow shapes,
+ * honoring `flipX`/`flipY` so the shape preserves the drag direction
+ * the user actually drew.
+ */
+function lineEndpoints(item: ShapeItem): [{ x: number; y: number }, { x: number; y: number }] {
+  const { width: w, height: h, flipX, flipY } = item;
+  const fromX = flipX ? w : 0;
+  const fromY = flipY ? h : 0;
+  const toX = flipX ? 0 : w;
+  const toY = flipY ? 0 : h;
+  return [{ x: fromX, y: fromY }, { x: toX, y: toY }];
+}
+
 function ShapeGeometry({ item }: { item: ShapeItem }) {
   const { width: w, height: h } = item;
   const fill = item.fill ?? DEFAULT_FILL;
@@ -158,27 +172,30 @@ function ShapeGeometry({ item }: { item: ShapeItem }) {
       const pts = `${w / 2},${inset} ${w - inset},${h - inset} ${inset},${h - inset}`;
       return <polygon points={pts} fill={fill} stroke={stroke} strokeWidth={sw} />;
     }
-    case "line":
+    case "line": {
+      const [from, to] = lineEndpoints(item);
       return (
         <line
-          x1={0}
-          y1={0}
-          x2={w}
-          y2={h}
+          x1={from.x}
+          y1={from.y}
+          x2={to.x}
+          y2={to.y}
           stroke={stroke}
           strokeWidth={sw}
           strokeLinecap="round"
         />
       );
+    }
     case "arrow": {
+      const [from, to] = lineEndpoints(item);
       const headSize = Math.max(8, sw * 5);
-      const dx = w;
-      const dy = h;
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
       const len = Math.hypot(dx, dy) || 1;
       const ux = dx / len;
       const uy = dy / len;
-      const baseX = w - ux * headSize;
-      const baseY = h - uy * headSize;
+      const baseX = to.x - ux * headSize;
+      const baseY = to.y - uy * headSize;
       const perpX = -uy;
       const perpY = ux;
       const leftX = baseX + perpX * headSize * 0.5;
@@ -187,8 +204,8 @@ function ShapeGeometry({ item }: { item: ShapeItem }) {
       const rightY = baseY - perpY * headSize * 0.5;
       return (
         <g>
-          <line x1={0} y1={0} x2={baseX} y2={baseY} stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
-          <polygon points={`${w},${h} ${leftX},${leftY} ${rightX},${rightY}`} fill={stroke} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
+          <line x1={from.x} y1={from.y} x2={baseX} y2={baseY} stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+          <polygon points={`${to.x},${to.y} ${leftX},${leftY} ${rightX},${rightY}`} fill={stroke} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
         </g>
       );
     }
