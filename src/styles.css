@@ -1,0 +1,4 @@
+/* fancy-whiteboard styles — kept minimal; host app provides Tailwind. */
+.fw-board { position: relative; overflow: hidden; touch-action: none; user-select: none; }
+.fw-board__viewport { position: absolute; inset: 0; transform-origin: 0 0; }
+.fw-item { position: absolute; }
