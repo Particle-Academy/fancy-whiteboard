@@ -33,6 +33,20 @@
   -webkit-text-fill-color: currentColor;
 }
 .fw-sticky__text::placeholder { color: rgba(31, 41, 55, 0.5); }
+.fw-sticky--editing { cursor: text; }
+.fw-sticky--editing .fw-sticky__text { cursor: text; }
+.fw-sticky__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 50%, rgba(31, 41, 55, 0.35) 50%, rgba(31, 41, 55, 0.35) 60%, transparent 60%, transparent 70%, rgba(31, 41, 55, 0.35) 70%, rgba(31, 41, 55, 0.35) 80%, transparent 80%);
+  border-bottom-right-radius: 6px;
+  touch-action: none;
+}
 
 /* Shapes */
 .fw-shape { cursor: grab; }

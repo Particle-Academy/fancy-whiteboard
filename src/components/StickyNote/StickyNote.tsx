@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useCallback } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { StickyNoteItem } from "../../types";
 
 export type StickyNoteProps = {
@@ -7,13 +7,24 @@ export type StickyNoteProps = {
   onSelect?: (id: string) => void;
   selected?: boolean;
   readOnly?: boolean;
+  /** Smallest size resize will allow (default 80×60). */
+  minWidth?: number;
+  minHeight?: number;
   className?: string;
   style?: CSSProperties;
+  /** When provided, replaces the default editable textarea. */
   children?: ReactNode;
 };
 
 /**
- * StickyNote — draggable, editable note. Controlled via `item` + `onChange`.
+ * StickyNote — draggable, editable note.
+ *
+ * Interactions:
+ *   • Drag anywhere on the note to move it.
+ *   • Double-click to enter edit mode and type; click outside to exit.
+ *   • Drag the bottom-right corner handle to resize.
+ *
+ * Controlled via `item` + `onChange`.
  */
 export function StickyNote({
   item,
@@ -21,21 +32,76 @@ export function StickyNote({
   onSelect,
   selected,
   readOnly,
+  minWidth = 80,
+  minHeight = 60,
   className,
   style,
   children,
 }: StickyNoteProps) {
+  const [editing, setEditing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Exit edit mode when clicking outside (or when deselected by parent).
+  useEffect(() => {
+    if (!editing) return;
+    const onDocPointerDown = (e: PointerEvent) => {
+      const ta = textareaRef.current;
+      if (ta && !ta.contains(e.target as Node)) setEditing(false);
+    };
+    document.addEventListener("pointerdown", onDocPointerDown);
+    return () => document.removeEventListener("pointerdown", onDocPointerDown);
+  }, [editing]);
+
+  useEffect(() => {
+    if (editing) textareaRef.current?.focus();
+  }, [editing]);
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (readOnly || !onChange) return;
+      if (readOnly || !onChange || editing) return;
       if (e.button !== 0 || e.altKey) return;
       onSelect?.(item.id);
       const start = { x: e.clientX, y: e.clientY };
       const origin = { x: item.x, y: item.y };
       const target = e.currentTarget;
       target.setPointerCapture(e.pointerId);
+      let moved = false;
       const move = (ev: PointerEvent) => {
+        moved = true;
         onChange({ ...item, x: origin.x + ev.clientX - start.x, y: origin.y + ev.clientY - start.y });
+      };
+      const up = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        // Suppress synthesized click after a drag so dblclick listeners don't fire.
+        if (moved) {
+          const swallow = (ev: Event) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            window.removeEventListener("click", swallow, true);
+          };
+          window.addEventListener("click", swallow, true);
+        }
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    },
+    [item, onChange, onSelect, readOnly, editing],
+  );
+
+  const onResizePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (readOnly || !onChange) return;
+      e.stopPropagation();
+      e.preventDefault();
+      const start = { x: e.clientX, y: e.clientY };
+      const origin = { w: item.width, h: item.height };
+      const target = e.currentTarget;
+      target.setPointerCapture(e.pointerId);
+      const move = (ev: PointerEvent) => {
+        const w = Math.max(minWidth, origin.w + ev.clientX - start.x);
+        const h = Math.max(minHeight, origin.h + ev.clientY - start.y);
+        onChange({ ...item, width: w, height: h });
       };
       const up = () => {
         window.removeEventListener("pointermove", move);
@@ -44,14 +110,20 @@ export function StickyNote({
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
     },
-    [item, onChange, onSelect, readOnly],
+    [item, onChange, readOnly, minWidth, minHeight],
   );
+
+  const onDoubleClick = useCallback(() => {
+    if (readOnly) return;
+    setEditing(true);
+  }, [readOnly]);
 
   return (
     <div
       className={[
         "fw-item fw-sticky",
         selected ? "fw-sticky--selected" : "",
+        editing ? "fw-sticky--editing" : "",
         className ?? "",
       ].filter(Boolean).join(" ")}
       style={{
@@ -64,14 +136,24 @@ export function StickyNote({
         ...style,
       }}
       onPointerDown={onPointerDown}
+      onDoubleClick={onDoubleClick}
     >
       {children ?? (
         <textarea
+          ref={textareaRef}
           className="fw-sticky__text"
           value={item.text}
-          readOnly={readOnly}
+          readOnly={readOnly || !editing}
+          tabIndex={editing ? 0 : -1}
           onChange={(e) => onChange?.({ ...item, text: e.target.value })}
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => { if (editing) e.stopPropagation(); }}
+        />
+      )}
+      {!readOnly && onChange && (
+        <div
+          className="fw-sticky__resize"
+          onPointerDown={onResizePointerDown}
+          aria-label="Resize note"
         />
       )}
     </div>

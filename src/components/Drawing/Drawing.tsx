@@ -80,6 +80,8 @@ export function Drawing({
       height={height}
       onPointerDown={onPointerDown}
     >
+      {/* Transparent hit-target so empty SVG area catches pointer events. */}
+      {enabled && <rect x={0} y={0} width={width} height={height} fill="transparent" />}
       {all.map((s) => (
         <path
           key={s.id}
