@@ -1,7 +1,35 @@
 /* fancy-whiteboard styles — kept minimal; host app provides Tailwind. */
 .fw-board { position: relative; overflow: hidden; touch-action: none; user-select: none; }
-.fw-board__viewport { position: absolute; inset: 0; transform-origin: 0 0; }
-.fw-item { position: absolute; }
+.fw-board__viewport {
+  position: absolute; inset: 0; transform-origin: 0 0;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fw-board--panning .fw-board__viewport { transition: none; }
+
+/* Items animate position + size by default so programmatic moves (e.g.
+   from an agent or a remote peer) are slow enough for the eye to follow.
+   The dragging class suppresses transitions during local drags so direct
+   manipulation feels snappy and 1:1 with the cursor. */
+.fw-item {
+  position: absolute;
+  transition: left 600ms cubic-bezier(0.22, 1, 0.36, 1),
+              top 600ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fw-item--dragging,
+.fw-item--resizing { transition: none !important; }
+
+/* Remote cursors glide so participants' positions feel continuous, not
+   teleporting frame-by-frame. */
+.fw-cursor {
+  transition: left 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              top 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) { .fw-cursor { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .fw-item { transition: none; }
+}
 
 /* Sticky notes are intentionally always-light: pinning color-scheme keeps
    OS dark mode from inverting text on the colored backgrounds. */

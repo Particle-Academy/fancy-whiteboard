@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import type { ShapeItem } from "../../types";
 
 export type ShapeProps = {
@@ -31,6 +31,8 @@ export function Shape({
   className,
   style,
 }: ShapeProps) {
+  const [dragging, setDragging] = useState(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (readOnly || !onChange) return;
     if (e.button !== 0 || e.altKey) return;
@@ -39,12 +41,16 @@ export function Shape({
     const origin = { x: item.x, y: item.y };
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
+    let moved = false;
     const move = (ev: PointerEvent) => {
+      if (!moved) setDragging(true);
+      moved = true;
       onChange({ ...item, x: origin.x + ev.clientX - start.x, y: origin.y + ev.clientY - start.y });
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      setDragging(false);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -61,6 +67,7 @@ export function Shape({
 
   const cls = [
     "fw-item fw-shape",
+    dragging ? "fw-item--dragging" : "",
     selected ? "fw-shape--selected" : "",
     className ?? "",
   ].filter(Boolean).join(" ");

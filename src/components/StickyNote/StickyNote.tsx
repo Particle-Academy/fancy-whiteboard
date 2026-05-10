@@ -39,6 +39,8 @@ export function StickyNote({
   children,
 }: StickyNoteProps) {
   const [editing, setEditing] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [resizing, setResizing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Exit edit mode when clicking outside (or when deselected by parent).
@@ -67,12 +69,14 @@ export function StickyNote({
       target.setPointerCapture(e.pointerId);
       let moved = false;
       const move = (ev: PointerEvent) => {
+        if (!moved) setDragging(true);
         moved = true;
         onChange({ ...item, x: origin.x + ev.clientX - start.x, y: origin.y + ev.clientY - start.y });
       };
       const up = () => {
         window.removeEventListener("pointermove", move);
         window.removeEventListener("pointerup", up);
+        setDragging(false);
         // Click-without-drag → enter edit mode. Much more discoverable than
         // double-click, while still preserving drag-to-move.
         if (!moved && !readOnly && onChange) setEditing(true);
@@ -92,6 +96,7 @@ export function StickyNote({
       const origin = { w: item.width, h: item.height };
       const target = e.currentTarget;
       target.setPointerCapture(e.pointerId);
+      setResizing(true);
       const move = (ev: PointerEvent) => {
         const w = Math.max(minWidth, origin.w + ev.clientX - start.x);
         const h = Math.max(minHeight, origin.h + ev.clientY - start.y);
@@ -100,6 +105,7 @@ export function StickyNote({
       const up = () => {
         window.removeEventListener("pointermove", move);
         window.removeEventListener("pointerup", up);
+        setResizing(false);
       };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
@@ -117,6 +123,8 @@ export function StickyNote({
     <div
       className={[
         "fw-item fw-sticky",
+        dragging ? "fw-item--dragging" : "",
+        resizing ? "fw-item--resizing" : "",
         selected ? "fw-sticky--selected" : "",
         editing ? "fw-sticky--editing" : "",
         className ?? "",
