@@ -79,7 +79,7 @@ export function StickyNote({
         setDragging(false);
         // Click-without-drag → enter edit mode. Much more discoverable than
         // double-click, while still preserving drag-to-move.
-        if (!moved && !readOnly && onChange) setEditing(true);
+        if (!moved && !readOnly) setEditing(true);
       };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
