@@ -1,4 +1,5 @@
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
+import { StickyNote as FancyStickyNote } from "@particle-academy/react-fancy";
 import type { StickyNoteItem } from "../../types";
 
 export type StickyNoteProps = {
@@ -12,16 +13,20 @@ export type StickyNoteProps = {
   minHeight?: number;
   className?: string;
   style?: CSSProperties;
-  /** When provided, replaces the default editable textarea. */
+  /** When provided, replaces the default editable note body. */
   children?: ReactNode;
 };
 
 /**
- * StickyNote — draggable, editable note.
+ * StickyNote — draggable, resizable board note.
+ *
+ * The note's paper look and inline text editing come from react-fancy's shared
+ * `<StickyNote>` primitive; this wrapper owns the board concerns: absolute
+ * positioning, drag-to-move, corner resize, and selection.
  *
  * Interactions:
  *   • Drag anywhere on the note to move it.
- *   • Double-click to enter edit mode and type; click outside to exit.
+ *   • Click (without dragging) — or double-click — to edit; click outside to commit.
  *   • Drag the bottom-right corner handle to resize.
  *
  * Controlled via `item` + `onChange`.
@@ -41,22 +46,11 @@ export function StickyNote({
   const [editing, setEditing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [resizing, setResizing] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Exit edit mode when clicking outside (or when deselected by parent).
+  // Deselected by parent → leave edit mode.
   useEffect(() => {
-    if (!editing) return;
-    const onDocPointerDown = (e: PointerEvent) => {
-      const ta = textareaRef.current;
-      if (ta && !ta.contains(e.target as Node)) setEditing(false);
-    };
-    document.addEventListener("pointerdown", onDocPointerDown);
-    return () => document.removeEventListener("pointerdown", onDocPointerDown);
-  }, [editing]);
-
-  useEffect(() => {
-    if (editing) textareaRef.current?.focus();
-  }, [editing]);
+    if (!selected && editing) setEditing(false);
+  }, [selected, editing]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -69,6 +63,7 @@ export function StickyNote({
       target.setPointerCapture(e.pointerId);
       let moved = false;
       const move = (ev: PointerEvent) => {
+        if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
         if (!moved) setDragging(true);
         moved = true;
         onChange({ ...item, x: origin.x + ev.clientX - start.x, y: origin.y + ev.clientY - start.y });
@@ -77,8 +72,7 @@ export function StickyNote({
         window.removeEventListener("pointermove", move);
         window.removeEventListener("pointerup", up);
         setDragging(false);
-        // Click-without-drag → enter edit mode. Much more discoverable than
-        // double-click, while still preserving drag-to-move.
+        // Click without drag → enter edit mode (more discoverable than double-click).
         if (!moved && !readOnly) setEditing(true);
       };
       window.addEventListener("pointermove", move);
@@ -113,12 +107,6 @@ export function StickyNote({
     [item, onChange, readOnly, minWidth, minHeight],
   );
 
-  // Double-click also enters edit mode for users who expect that gesture.
-  const onDoubleClick = useCallback(() => {
-    if (readOnly) return;
-    setEditing(true);
-  }, [readOnly]);
-
   return (
     <div
       className={[
@@ -128,36 +116,27 @@ export function StickyNote({
         selected ? "fw-sticky--selected" : "",
         editing ? "fw-sticky--editing" : "",
         className ?? "",
-      ].filter(Boolean).join(" ")}
-      style={{
-        left: item.x,
-        top: item.y,
-        width: item.width,
-        height: item.height,
-        background: item.color ?? "#fde68a",
-        zIndex: item.z,
-        ...style,
-      }}
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={{ left: item.x, top: item.y, width: item.width, height: item.height, zIndex: item.z, ...style }}
       onPointerDown={onPointerDown}
-      onDoubleClick={onDoubleClick}
+      onDoubleClick={() => {
+        if (!readOnly) setEditing(true);
+      }}
     >
-      {children ?? (
-        <textarea
-          ref={textareaRef}
-          className="fw-sticky__text"
-          value={item.text}
-          readOnly={readOnly || !editing}
-          tabIndex={editing ? 0 : -1}
-          onChange={(e) => onChange?.({ ...item, text: e.target.value })}
-          onPointerDown={(e) => { if (editing) e.stopPropagation(); }}
-        />
-      )}
+      <FancyStickyNote
+        className="h-full w-full"
+        color={item.color ?? "yellow"}
+        value={item.text}
+        editable={!readOnly && editing}
+        autoFocus
+        onChange={(text) => onChange?.({ ...item, text })}
+      >
+        {children}
+      </FancyStickyNote>
       {!readOnly && onChange && (
-        <div
-          className="fw-sticky__resize"
-          onPointerDown={onResizePointerDown}
-          aria-label="Resize note"
-        />
+        <div className="fw-sticky__resize" onPointerDown={onResizePointerDown} aria-label="Resize note" />
       )}
     </div>
   );

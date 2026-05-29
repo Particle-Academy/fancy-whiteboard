@@ -6,6 +6,6 @@ export default defineConfig({
   dts: { entry: ["src/index.ts"] },
   sourcemap: true,
   clean: true,
-  external: ["react", "react-dom"],
+  external: ["react", "react-dom", "@particle-academy/react-fancy"],
   treeshake: true,
 });

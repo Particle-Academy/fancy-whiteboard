@@ -34,12 +34,9 @@
 /* Sticky notes are intentionally always-light: pinning color-scheme keeps
    OS dark mode from inverting text on the colored backgrounds. */
 .fw-sticky {
-  color-scheme: light;
-  color: #1f2937;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.08);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  overflow: hidden;
+  /* Paper look (background, shadow, radius, padding, text) now comes from
+     react-fancy's shared <StickyNote>. This wrapper only owns positioning,
+     drag, resize, and selection. */
   cursor: grab;
 }
 .fw-sticky:active { cursor: grabbing; }
