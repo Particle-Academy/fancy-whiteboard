@@ -1,5 +1,7 @@
 # @particle-academy/fancy-whiteboard
 
+[![Fancified](art/fancified.svg)](https://particle.academy)
+
 Collaborative whiteboard React components — sticky notes, diagramming, freeform drawing, and presence cursors.
 
 **Transport-agnostic.** Components are controlled (`state` + `onChange`); your app wires the realtime layer (Echo / Reverb / Yjs / WebSockets / whatever). The package itself ships zero networking and minimal business logic so apps own their workflow.
