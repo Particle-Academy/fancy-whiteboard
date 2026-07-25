@@ -12,7 +12,7 @@ Collaborative whiteboard React components — sticky notes, diagramming, freefor
 npm install @particle-academy/fancy-whiteboard
 ```
 
-> **Required peer (v0.2.0+):** `@particle-academy/react-fancy` (`^3.4.0`) is now a
+> **Required peer (v0.2.0+):** `@particle-academy/react-fancy` (`>=3`) is now a
 > required peer dependency — sticky notes render via its shared `<StickyNote>`
 > primitive. Install it alongside this package and import **both** stylesheets:
 
