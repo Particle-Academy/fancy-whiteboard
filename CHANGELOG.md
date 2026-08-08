@@ -15,6 +15,30 @@ upgrading.
 
 ## [Unreleased]
 
+## 0.4.0 — 2026-08-07
+
+### Added
+
+- **`whiteboardLive` — this package's Live Contract**, plus `whiteboardKeys`
+  for per-board query keys. Declares which events a host should broadcast to
+  make a shared board converge, and which query keys each one invalidates.
+
+  `fancy-query` is a **type-only** import, so this adds no dependency.
+
+  Unlike the catalog contract this has no backend twin — the board's storage is
+  the host's — so it is a statement of what to emit rather than a mirror of what
+  we emit. Emit these names and the wiring is free.
+
+  **Cursors and presence are deliberately NOT in it.** They fire once per mouse
+  move, per participant. In a contract, a board with three people on it would
+  re-fetch its items hundreds of times a minute and still show nothing new.
+  Presence is a stream — render it from the transport (`<CursorLayer>`) and let
+  the contract cover only the durable document. Same reason in-progress stroke
+  points are absent while completed strokes are present.
+
+  **What you must do:** nothing. Additive.
+
+
 ## 0.3.0 — 2026-08-07
 
 ### Changed

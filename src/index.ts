@@ -31,3 +31,5 @@ export type {
 } from "./types";
 
 export { SHAPE_KINDS } from "./types";
+
+export { whiteboardLive, whiteboardKeys } from "./live";
