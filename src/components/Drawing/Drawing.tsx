@@ -103,9 +103,23 @@ export function Drawing({
     <svg
       ref={ref}
       className={className}
-      style={{ pointerEvents: enabled ? "auto" : "none", ...style }}
-      width={w || undefined}
-      height={h || undefined}
+      style={{
+        pointerEvents: enabled ? "auto" : "none",
+        // FILL THE CONTAINER BY CSS when no explicit size was given, and let the
+        // ResizeObserver read the result. Without this the component could not
+        // bootstrap: `measured` starts at 0, so no width attribute was rendered,
+        // so the <svg> fell back to the browser default of 300x150, so the
+        // effect measured 300x150 -- its own fallback -- and pinned itself
+        // there. It was measuring itself before anything had given it a size.
+        //
+        // Before `...style`, so a caller sizing it themselves still wins.
+        ...(width == null && height == null ? { width: "100%", height: "100%" } : null),
+        ...style,
+      }}
+      // Only as ATTRIBUTES when the caller asked for them. Deriving these from
+      // the measurement is what froze the element at its own default.
+      width={width ?? undefined}
+      height={height ?? undefined}
       onPointerDown={onPointerDown}
     >
       {/* Transparent hit-target so empty SVG area catches pointer events. */}

@@ -15,6 +15,38 @@ upgrading.
 
 ## [Unreleased]
 
+## 0.5.0 — 2026-08-20
+
+### Fixed
+
+- **`Drawing` now fills its container instead of pinning itself to 300x150.**
+
+  It could never bootstrap. `measured` starts at `{ w: 0, h: 0 }`, so it rendered
+  `width={w || undefined}` — no width attribute — so the `<svg>` fell back to the
+  browser's default intrinsic size of **300x150**, so the ResizeObserver
+  measured *that* and wrote it back as the real size. **It was measuring itself
+  before anything had given it a size**, and then observing the element it had
+  just frozen.
+
+  The result: a pen surface stuck at 300px wide however much room it was given.
+  Seen on the docs site at 300px inside a 1246px container — in a component whose
+  own documentation says it "auto-measures its rendered size via ResizeObserver".
+
+  The fix lets CSS size it (`100%` of its container when no explicit size is
+  given) and measures the result, rather than deriving its layout size from a
+  measurement of its own fallback. The `width` / `height` attributes are now set
+  only when the caller supplies them.
+
+  **What a consumer must DO:** nothing, unless you were relying on the 300x150 —
+  which was the defect, not a default. If you want a fixed size, pass `width` and
+  `height`; that opt-out is unchanged and is now also asserted. A `style` you
+  pass still wins over the fill, so sizing it yourself keeps working.
+
+  Found while making canvas previews full-width on the docs site: removing the
+  card padding revealed that the component had not been filling the space it was
+  already being given.
+
+
 ## 0.4.0 — 2026-08-07
 
 ### Added
