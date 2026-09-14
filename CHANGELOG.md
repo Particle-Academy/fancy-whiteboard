@@ -15,6 +15,20 @@ upgrading.
 
 ## [Unreleased]
 
+### Removed
+
+- **The `clsx` runtime dependency, which nothing used.** It was declared in
+  `dependencies` from the initial scaffold, so every consumer installed it, and
+  no file in this package has ever imported it — class names here are built
+  without it. Its upstream (lukeed/clsx) has had no commit since 2024-06, which
+  fails the suite's rule that third-party code must be actively maintained.
+
+  The built `dist/` is **byte-identical** with and without it. A new test fails
+  if any runtime dependency is declared that `src/` does not import at runtime.
+
+  **What you must do:** nothing. If your own code imports `clsx` and was relying
+  on this package to install it, add it to your own dependencies.
+
 ## 0.5.0 — 2026-08-20
 
 ### Fixed
