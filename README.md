@@ -61,7 +61,7 @@ To make it collaborative, pipe `onChange` through your transport (broadcast → 
 
 ## Status
 
-`v0.1.0` — initial scaffold. APIs are likely to evolve before `v1`.
+Pre-1.0. APIs are likely to evolve before `v1`.
 
 ## License
 
