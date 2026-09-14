@@ -15,6 +15,8 @@ upgrading.
 
 ## [Unreleased]
 
+## 0.5.1 — 2026-09-13
+
 ### Removed
 
 - **The `clsx` runtime dependency, which nothing used.** It was declared in
