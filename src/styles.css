@@ -69,8 +69,15 @@
   cursor: nwse-resize;
   background:
     linear-gradient(135deg, transparent 50%, rgba(31, 41, 55, 0.35) 50%, rgba(31, 41, 55, 0.35) 60%, transparent 60%, transparent 70%, rgba(31, 41, 55, 0.35) 70%, rgba(31, 41, 55, 0.35) 80%, transparent 80%);
+  border: 0;
+  padding: 0;
+  margin: 0;
   border-bottom-right-radius: 6px;
   touch-action: none;
+}
+.fw-sticky__resize:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
 }
 
 /* Shapes */

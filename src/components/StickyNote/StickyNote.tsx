@@ -107,6 +107,29 @@ export function StickyNote({
     [item, onChange, readOnly, minWidth, minHeight],
   );
 
+  const onResizeKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (readOnly || !onChange) return;
+      const step = e.shiftKey ? 50 : 10;
+      const delta: Record<string, [number, number]> = {
+        ArrowRight: [step, 0],
+        ArrowLeft: [-step, 0],
+        ArrowDown: [0, step],
+        ArrowUp: [0, -step],
+      };
+      const d = delta[e.key];
+      if (!d) return;
+      e.preventDefault();
+      e.stopPropagation();
+      onChange({
+        ...item,
+        width: Math.max(minWidth, item.width + d[0]),
+        height: Math.max(minHeight, item.height + d[1]),
+      });
+    },
+    [item, onChange, readOnly, minWidth, minHeight],
+  );
+
   return (
     <div
       className={[
@@ -136,7 +159,17 @@ export function StickyNote({
         {children}
       </FancyStickyNote>
       {!readOnly && onChange && (
-        <div className="fw-sticky__resize" onPointerDown={onResizePointerDown} aria-label="Resize note" />
+        // A button, not a bare div: a name on a roleless div is ignored by
+        // assistive tech (axe aria-prohibited-attr), and a div is unreachable
+        // from the keyboard. Arrow keys resize by 10px, Shift+arrow by 50px.
+        <button
+          type="button"
+          className="fw-sticky__resize"
+          aria-label="Resize note"
+          aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown"
+          onPointerDown={onResizePointerDown}
+          onKeyDown={onResizeKeyDown}
+        />
       )}
     </div>
   );

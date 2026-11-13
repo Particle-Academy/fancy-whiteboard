@@ -15,6 +15,15 @@ upgrading.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The sticky note's resize handle is a real control** (axe
+  `aria-prohibited-attr`, lab run 601, K32). It was a `<div>` carrying
+  `aria-label` with no role, so the name was ignored and no keyboard could reach
+  it. It is now a `<button type="button">` named "Resize note"; arrow keys
+  resize by 10px (Shift: 50px), clamped to `minWidth` / `minHeight`. The
+  `.fw-sticky__resize` class is unchanged. Nothing to do on upgrade.
+
 ### Changed
 
 - **Releases need a lab-run certificate.** `publish.yml` gains a read-only

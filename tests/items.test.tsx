@@ -126,6 +126,46 @@ describe("StickyNote", () => {
 
         expect(item).toEqual(snapshot);
     });
+
+    it("makes the resize handle a named control, not a labelled bare div", () => {
+        // axe aria-prohibited-attr (lab run 601, K32): the handle was a <div>
+        // with aria-label and no role, and a name on a roleless div is ignored
+        // -- nothing announced it and no keyboard could reach it.
+        const host = mount(<StickyNote item={note()} onChange={() => {}} />);
+        const handle = host.querySelector(".fw-sticky__resize")!;
+
+        expect(handle.tagName).toBe("BUTTON");
+        expect(handle.getAttribute("type")).toBe("button");
+        expect(handle.getAttribute("aria-label")).toBe("Resize note");
+    });
+
+    it("resizes from the keyboard, within the minimum size", () => {
+        const onChange = vi.fn();
+        const host = mount(<StickyNote item={note({ width: 160, height: 120 })} onChange={onChange} minWidth={80} minHeight={60} />);
+        const handle = host.querySelector<HTMLElement>(".fw-sticky__resize")!;
+        const press = (key: string, shiftKey = false) =>
+            act(() => {
+                handle.dispatchEvent(new KeyboardEvent("keydown", { key, shiftKey, bubbles: true }));
+            });
+
+        press("ArrowRight");
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ width: 170, height: 120 }));
+        press("ArrowDown", true);
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ width: 160, height: 170 }));
+
+        const small = vi.fn();
+        const host2 = mount(<StickyNote item={note({ id: "n2", width: 85, height: 60 })} onChange={small} minWidth={80} minHeight={60} />);
+        act(() => {
+            host2.querySelector(".fw-sticky__resize")!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+        });
+        expect(small).toHaveBeenLastCalledWith(expect.objectContaining({ width: 80 }));
+    });
+
+    it("renders no resize handle when the note cannot change", () => {
+        const host = mount(<StickyNote item={note()} readOnly onChange={() => {}} />);
+
+        expect(host.querySelector(".fw-sticky__resize")).toBeNull();
+    });
 });
 
 describe("Shape", () => {
